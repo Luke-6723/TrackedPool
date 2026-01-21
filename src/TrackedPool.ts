@@ -18,7 +18,7 @@ export class TrackedPool extends pg.Pool {
     }
 
     // Check if SQL already has a tracking comment (to prevent duplicates)
-    if (sql.trim().startsWith("/*func_name=")) {
+    if (sql.trim().endsWith("*/") && sql.includes("/*func_name=")) {
       return sql;
     }
 
@@ -46,9 +46,9 @@ export class TrackedPool extends pg.Pool {
       relativePath = fileName.split("/").pop() || fileName;
     }
 
-    const comment = `/*func_name=${functionName},file=${relativePath},line=${lineNumber}*/ `;
-    
-    return comment + sql.trim();
+    const comment = `/*func_name=${functionName},file=${relativePath},line=${lineNumber}*/`;
+
+    return sql.trim() + " " + comment;
   }
 
   /**
