@@ -1,9 +1,7 @@
-name: Build and Publish
+name: Publish to npm
 
 on:
   push:
-    branches: master
-  pull_request:
     branches: master
 
 jobs:
@@ -145,6 +143,11 @@ jobs:
     
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: master
+      
+      - name: Pull latest changes
+        run: git pull origin master
       
       - uses: actions/setup-node@v6
         with:
@@ -170,6 +173,11 @@ jobs:
     
     steps:
     - uses: actions/checkout@v6
+      with:
+        ref: master
+    
+    - name: Pull latest changes
+      run: git pull origin master
 
     - name: Get version for release
       id: get_version
