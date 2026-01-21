@@ -158,9 +158,9 @@ jobs:
           name: dist
           path: dist/
       
-      - uses: JS-DevTools/npm-publish@v4
-        with:
-          token: ${{ secrets.NPM_TOKEN }}
+      - run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   publish-release:
     runs-on: ubuntu-latest
