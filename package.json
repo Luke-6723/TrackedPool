@@ -29,7 +29,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/top-stats/postgres-tracked-pool.git"
+    "url": "https://github.com/Luke-6723/TrackedPool"
   },
   "bugs": {
     "url": "https://github.com/top-stats/postgres-tracked-pool/issues"
