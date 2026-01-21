@@ -120,7 +120,6 @@ jobs:
       run: |
         git add package.json
         git diff --staged --quiet || git commit -m "chore: bump version to $(node -p "require('./package.json').version") [skip ci]"
-        git push
 
     - name: Get version for release
       if: steps.no_version.outputs.set == 'false'
@@ -129,8 +128,8 @@ jobs:
         VERSION=$(node -p "require('./package.json').version")
         echo "version=$VERSION" >> $GITHUB_OUTPUT
 
-    - name: Create Git tag
+    - name: Create and push tag
       if: steps.no_version.outputs.set == 'false'
       run: |
         git tag "v${{ steps.get_version.outputs.version }}"
-        git push origin "v${{ steps.get_version.outputs.version }}"
+        git push origin HEAD:master --follow-tags
