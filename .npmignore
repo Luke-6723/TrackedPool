@@ -1,0 +1,36 @@
+# Source files
+src/
+tsconfig.json
+
+# Tests
+test/
+*.test.ts
+*.spec.ts
+
+# Development
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+.travis.yml
+
+# Documentation (except README)
+docs/
+*.md
+!README.md
+
+# Examples
+examples/
+
+# Misc
+.DS_Store
+Thumbs.db
