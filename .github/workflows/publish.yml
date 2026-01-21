@@ -133,6 +133,7 @@ jobs:
       run: |
         git tag "v${{ steps.get_version.outputs.version }}"
         git push origin HEAD:master --follow-tags
+        sleep 10
 
   publish-npm:
     runs-on: ubuntu-latest
