@@ -118,7 +118,7 @@ jobs:
     - name: Commit version bump
       if: steps.no_version.outputs.set == 'false'
       run: |
-        git add package.json
+        git add package.json package-lock.json
         git diff --staged --quiet || git commit -m "chore: bump version to $(node -p "require('./package.json').version") [skip ci]"
 
     - name: Get version for release
