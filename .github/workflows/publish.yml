@@ -2,21 +2,21 @@ name: Build and Publish
 
 on:
   push:
-    branches: [ "master" ]
+    branches: master
   pull_request:
-    branches: [ "master" ]
+    branches: master
 
 jobs:
   test:
     runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
 
-    - name: Use Node.js 20.x
-      uses: actions/setup-node@v4
+    - name: Use Node.js 24
+      uses: actions/setup-node@v6
       with:
-        node-version: '20.x'
+        node-version: '24'
 
     - name: Install dependencies
       run: npm ci
@@ -29,13 +29,12 @@ jobs:
     needs: test
     
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
 
-    - name: Use Node.js 20.x
-      uses: actions/setup-node@v4
+    - name: Use Node.js 24
+      uses: actions/setup-node@v6
       with:
-        node-version: '20.x'
-        registry-url: 'https://registry.npmjs.org'
+        node-version: '24'
 
     - name: Install dependencies
       run: npm ci
@@ -49,27 +48,23 @@ jobs:
         name: dist
         path: dist/
 
-  publish:
+  version-bump:
     runs-on: ubuntu-latest
-    needs: [test, build]
+    needs: build
     if: github.ref == 'refs/heads/master' && github.event_name == 'push'
     
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Use Node.js 20.x
-      uses: actions/setup-node@v4
+    - name: Use Node.js 24
+      uses: actions/setup-node@v6
       with:
-        node-version: '20.x'
-        registry-url: 'https://registry.npmjs.org'
+        node-version: '24'
 
-    - name: Download build artifacts
-      uses: actions/download-artifact@v4
-      with:
-        name: dist
-        path: dist/
+    - name: Install dependencies
+      run: npm ci
 
     # Check commit message for version bump type
     - name: Check for [noversion] in commit message
@@ -140,14 +135,54 @@ jobs:
         git tag "v${{ steps.get_version.outputs.version }}"
         git push origin "v${{ steps.get_version.outputs.version }}"
 
-    - name: Publish to npm
-      if: steps.no_version.outputs.set == 'false'
-      run: npm publish
-      env:
-        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+  publish-npm:
+    runs-on: ubuntu-latest
+    needs: version-bump
+    if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+    permissions:
+      contents: read
+      id-token: write
+    
+    steps:
+      - uses: actions/checkout@v6
+      
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+      
+      - run: npm ci
+      
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      
+      - uses: JS-DevTools/npm-publish@v4
+
+  publish-release:
+    runs-on: ubuntu-latest
+    needs: publish-npm
+    if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+    permissions:
+      contents: write
+    
+    steps:
+    - uses: actions/checkout@v6
+
+    - name: Get version for release
+      id: get_version
+      run: |
+        VERSION=$(node -p "require('./package.json').version")
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+    - name: Download build artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: dist
+        path: dist/
 
     - name: Create GitHub Release
-      if: steps.no_version.outputs.set == 'false'
       uses: softprops/action-gh-release@v2
       with:
         tag_name: v${{ steps.get_version.outputs.version }}
