@@ -2,46 +2,68 @@
 
 ## 📦 Publishing Instructions
 
-This package is ready to publish to npm and GitHub.
+This package is configured for automatic publishing to npm via GitHub Actions.
 
 ### Prerequisites
 
 1. **npm account**: Create one at https://www.npmjs.com/signup
-2. **GitHub repository**: Create a new repo at https://github.com/new
+2. **GitHub repository**: Already set up at https://github.com/Luke-6723/TrackedPool
 
-### Setup Steps
+### Automatic Publishing Setup
 
-#### 1. Initialize Git Repository
+#### 1. Generate npm Access Token
 
+1. Log in to [npmjs.com](https://www.npmjs.com/)
+2. Click on your profile picture → **Access Tokens**
+3. Click **Generate New Token** → **Classic Token**
+4. Select **Automation** (for CI/CD use)
+5. Copy the generated token (you'll only see it once!)
+
+#### 2. Add npm Token to GitHub Secrets
+
+1. Go to https://github.com/Luke-6723/TrackedPool/settings/secrets/actions
+2. Click **New repository secret**
+3. Name: `NPM_TOKEN`
+4. Value: Paste the npm token from step 1
+5. Click **Add secret**
+
+#### 3. How Automatic Publishing Works
+
+The GitHub Actions workflow automatically:
+
+1. **Runs tests** on every push and PR
+2. **Builds** the TypeScript code
+3. **Publishes to npm** (only on master branch pushes) with automatic versioning:
+   - Default: Patch version bump (1.0.0 → 1.0.1)
+   - Add `[minor]` in commit message for minor bump (1.0.0 → 1.1.0)
+   - Add `[major]` in commit message for major bump (1.0.0 → 2.0.0)
+   - Add `[noversion]` to skip publishing
+
+**Example commits:**
 ```bash
-cd /home/luke/Desktop/Dev/topstats/TrackedPool
-git init
-git add .
-git commit -m "Initial commit: postgres-tracked-pool v1.0.0"
+# Patch bump (default)
+git commit -m "fix: resolve query tracking issue"
+
+# Minor bump
+git commit -m "feat: add new tracking feature [minor]"
+
+# Major bump  
+git commit -m "feat: breaking API changes [major]"
+
+# No publish
+git commit -m "docs: update README [noversion]"
 ```
 
-#### 2. Create GitHub Repository
+### Manual Publishing (First Time)
 
-1. Go to https://github.com/new
-2. Repository name: `postgres-tracked-pool`
-3. Description: "PostgreSQL connection pool wrapper with automatic query tracking"
-4. Keep it public (or private if preferred)
-5. **Don't** initialize with README (we already have one)
-6. Click "Create repository"
-
-#### 3. Push to GitHub
-
-```bash
-git remote add origin https://github.com/top-stats/postgres-tracked-pool.git
-git branch -M main
-git push -u origin main
-```
-
-#### 4. Publish to npm
+For the initial publish, you may want to do it manually:
 
 ```bash
 # Login to npm (first time only)
 npm login
+
+# Build the package
+npm run build
 
 # Publish the package
 npm publish
