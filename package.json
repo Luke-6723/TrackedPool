@@ -1,6 +1,6 @@
 {
   "name": "postgres-tracked-pool",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "A PostgreSQL connection pool wrapper that automatically adds tracking comments to SQL queries with function name, file path, and line number",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
