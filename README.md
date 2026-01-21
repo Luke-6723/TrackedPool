@@ -307,6 +307,38 @@ const pool = process.env.NODE_ENV === "test"
 - Node.js >= 14.0.0
 - PostgreSQL client library (`pg`) >= 8.0.0
 
+## Testing
+
+This package includes comprehensive test suites to ensure tracking comments work correctly:
+
+### Unit Tests
+
+The unit tests verify that tracking comments are properly added to all query types:
+```bash
+npm test
+```
+
+### Integration Tests
+
+Integration tests verify that tracking comments appear in `pg_stat_statements` with a real PostgreSQL instance:
+
+```bash
+# Start PostgreSQL with pg_stat_statements enabled
+docker run -d --name postgres-test \
+  -e POSTGRES_PASSWORD=test \
+  -p 5432:5432 \
+  postgres:latest
+
+# Enable the extension
+docker exec -it postgres-test psql -U postgres \
+  -c "CREATE EXTENSION IF NOT EXISTS pg_stat_statements;"
+
+# Run integration tests
+npm run test:integration
+```
+
+For detailed testing documentation, see [TESTING.md](./TESTING.md).
+
 ## License
 
 MIT
