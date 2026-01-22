@@ -1,79 +1,157 @@
-name: Publish to npm
+name: Build, Version, and Release
 
 on:
   push:
-    tags:
-      - 'v*'
+    branches: master
 
 jobs:
   test:
     runs-on: ubuntu-latest
-
+    
     steps:
-      - uses: actions/checkout@v6
+    - uses: actions/checkout@v6
 
-      - name: Use Node.js 24
-        uses: actions/setup-node@v6
-        with:
-          node-version: '24'
+    - name: Use Node.js 24
+      uses: actions/setup-node@v6
+      with:
+        node-version: '24'
 
-      - run: npm ci
+    - name: Install dependencies
+      run: npm ci
 
-      - run: npm test
+    - name: Run tests
+      run: npm test
 
   build:
     runs-on: ubuntu-latest
     needs: test
-
+    
     steps:
-      - uses: actions/checkout@v6
+    - uses: actions/checkout@v6
 
-      - name: Use Node.js 24
-        uses: actions/setup-node@v6
-        with:
-          node-version: '24'
+    - name: Use Node.js 24
+      uses: actions/setup-node@v6
+      with:
+        node-version: '24'
 
-      - run: npm ci
+    - name: Install dependencies
+      run: npm ci
 
-      - run: npm run build
+    - name: Build
+      run: npm run build
 
-      - uses: actions/upload-artifact@v4
-        with:
-          name: dist
-          path: dist/
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: dist
+        path: dist/
 
-  publish-npm:
+  version-bump:
     runs-on: ubuntu-latest
     needs: build
-    permissions:
-      contents: read
-      id-token: write  # REQUIRED for OIDC
-
+    if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+    
     steps:
-      - uses: actions/checkout@v6
+    - uses: actions/checkout@v6
+      with:
+        token: ${{ secrets.PAT_TOKEN }}
 
-      - uses: actions/setup-node@v6
-        with:
-          node-version: '24'
-          registry-url: https://registry.npmjs.org/
+    - name: Use Node.js 24
+      uses: actions/setup-node@v6
+      with:
+        node-version: '24'
 
-      - run: npm ci
+    - name: Install dependencies
+      run: npm ci
 
-      - uses: actions/download-artifact@v4
-        with:
-          name: dist
-          path: dist/
+    # Check commit message for version bump type
+    - name: Check for [noversion] in commit message
+      id: no_version
+      run: |
+        if git log -1 --pretty=%B | grep -q '\[noversion\]'; then
+          echo "set=true" >> $GITHUB_OUTPUT
+        else
+          echo "set=false" >> $GITHUB_OUTPUT
+        fi
 
-      - run: npm publish --provenance
+    - name: Check for version type in commit message
+      id: check_version
+      run: |
+        if git log -1 --pretty=%B | grep -q '\[major\]'; then
+          echo "major=true" >> $GITHUB_OUTPUT
+        else
+          echo "major=false" >> $GITHUB_OUTPUT
+        fi
+
+        if git log -1 --pretty=%B | grep -q '\[minor\]'; then
+          echo "minor=true" >> $GITHUB_OUTPUT
+        else
+          echo "minor=false" >> $GITHUB_OUTPUT
+        fi
+    
+    - name: Increment major version
+      if: steps.check_version.outputs.major == 'true' && steps.no_version.outputs.set == 'false'
+      run: |
+        npm version major --no-git-tag-version
+        echo "Version bumped to $(node -p "require('./package.json').version")"
+
+    - name: Increment minor version
+      if: steps.check_version.outputs.minor == 'true' && steps.no_version.outputs.set == 'false'
+      run: |
+        npm version minor --no-git-tag-version
+        echo "Version bumped to $(node -p "require('./package.json').version")"
+
+    - name: Increment patch version (default)
+      if: steps.check_version.outputs.minor != 'true' && steps.check_version.outputs.major != 'true' && steps.no_version.outputs.set == 'false'
+      run: |
+        npm version patch --no-git-tag-version
+        echo "Version bumped to $(node -p "require('./package.json').version")"
+
+    - name: Configure Git
+      if: steps.no_version.outputs.set == 'false'
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+
+    - name: Commit version bump
+      if: steps.no_version.outputs.set == 'false'
+      run: |
+        git add package.json package-lock.json
+        git diff --staged --quiet || git commit -m "chore: bump version to $(node -p "require('./package.json').version") [skip ci]"
+
+    - name: Get version for release
+      if: steps.no_version.outputs.set == 'false'
+      id: get_version
+      run: |
+        VERSION=$(node -p "require('./package.json').version")
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+    - name: Create and push tag
+      if: steps.no_version.outputs.set == 'false'
+      run: |
+        git tag "v${{ steps.get_version.outputs.version }}"
+        git push origin HEAD:master --follow-tags
 
   create-release:
     runs-on: ubuntu-latest
-    needs: publish-npm
+    needs: version-bump
+    if: github.ref == 'refs/heads/master' && github.event_name == 'push'
     permissions:
       contents: write
 
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: master
+
+      - name: Pull latest changes
+        run: git pull origin master
+
+      - name: Get version for release
+        id: get_version
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Download build artifacts
         uses: actions/download-artifact@v4
@@ -81,17 +159,11 @@ jobs:
           name: dist
           path: dist/
 
-      - name: Get version from tag
-        id: get_version
-        run: |
-          VERSION="${GITHUB_REF#refs/tags/}"
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.ref_name }}
-          name: Release ${{ github.ref_name }}
+          tag_name: v${{ steps.get_version.outputs.version }}
+          name: Release v${{ steps.get_version.outputs.version }}
           generate_release_notes: true
           files: |
             dist/**/*
