@@ -33,9 +33,9 @@
     "url": "https://github.com/Luke-6723/TrackedPool"
   },
   "bugs": {
-    "url": "https://github.com/top-stats/postgres-tracked-pool/issues"
+    "url": "https://github.com/Luke-6723/TrackedPool/issues"
   },
-  "homepage": "https://github.com/top-stats/postgres-tracked-pool#readme",
+  "homepage": "https://github.com/Luke-6723/TrackedPool#readme",
   "peerDependencies": {
     "pg": "^8.0.0"
   },
