@@ -45,7 +45,7 @@ async function getUserById(userId: string) {
 PostgreSQL receives:
 
 ```sql
-/*func_name=getUserById,file=./src/user/service.ts:43:10*/ SELECT * FROM users WHERE id = $1
+/*func_name=getUserById,file=.%2Fsrc%2Fuser%2Fservice.ts%3A43%3A10*/ SELECT * FROM users WHERE id = $1
 ```
 
 ## API
@@ -100,7 +100,7 @@ log_statement = 'all'
 
 Log output:
 ```
-LOG:  statement: /*func_name=getRecentData,file=./src/analytics.ts:123:5*/ SELECT time, value FROM metrics WHERE id = $1
+LOG:  statement: /*func_name=getRecentData,file=.%2Fsrc%2Fanalytics.ts%3A123%3A5*/ SELECT time, value FROM metrics WHERE id = $1
 ```
 
 ### pg_stat_statements
@@ -280,14 +280,14 @@ process.on("SIGTERM", async () => {
 
 Queries from anonymous functions are labeled as:
 ```sql
-/*func_name=anonymous,file=./src/index.ts:123:0*/ SELECT ...
+/*func_name=anonymous,file=.%2Fsrc%2Findex.ts%3A123%3A0*/ SELECT ...
 ```
 
 ### Unknown File Paths
 
 If stack traces can't be captured (rare):
 ```sql
-/*func_name=unknown,file=./unknown:0:0*/ SELECT ...
+/*func_name=unknown,file=.%2Funknown%3A0%3A0*/ SELECT ...
 ```
 
 ### Disabling Tracking

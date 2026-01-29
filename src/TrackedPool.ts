@@ -3,7 +3,7 @@ import pg from "pg";
 /**
  * A wrapper around pg.Pool that automatically adds tracking comments to SQL queries
  * Comments include: function name, file path, line number, and column number
- * Example format in SQL: slash-star func_name=functionName,file=./filePath:lineNumber:columnNumber star-slash
+ * Example format in SQL: slash-star func_name=functionName,file=.%2FfilePath%3AlineNumber%3AcolumnNumber star-slash
  */
 export class TrackedPool extends pg.Pool {
   /**
@@ -47,7 +47,8 @@ export class TrackedPool extends pg.Pool {
       relativePath = fileName.split("/").pop() || fileName;
     }
 
-    const comment = `/*func_name=${functionName},file=./${relativePath}:${lineNumber}:${columnNumber}*/`;
+    const filePath = `./${relativePath}:${lineNumber}:${columnNumber}`;
+    const comment = `/*func_name=${functionName},file=${encodeURIComponent(filePath)}*/`;
 
     return sql.trim() + " " + comment;
   }

@@ -73,7 +73,7 @@ describe('TrackedPool', () => {
       
       // Verify the tracking comment is included
       expect(executedQuery).toContain('/*func_name=');
-      expect(executedQuery).toContain(',file=./');
+      expect(executedQuery).toContain(',file=.%2F');
       expect(executedQuery).toContain('*/');
       
       // Verify original query is preserved
@@ -99,8 +99,8 @@ describe('TrackedPool', () => {
       expect(capturedQueries.length).toBe(1);
       const executedQuery = capturedQueries[0].text;
       
-      // Should contain file reference (TrackedPool.spec.ts or similar)
-      expect(executedQuery).toMatch(/,file=\.\/[^*]+\*\//);
+      // Should contain file reference (TrackedPool.spec.ts or similar), URL-encoded
+      expect(executedQuery).toMatch(/,file=\.%2F[^*]+\*\//);
       expect(executedQuery).toContain('TrackedPool.spec');
     });
 
@@ -110,8 +110,8 @@ describe('TrackedPool', () => {
       expect(capturedQueries.length).toBe(1);
       const executedQuery = capturedQueries[0].text;
 
-      // File path should include line:column (e.g., ./file.ts:42:10)
-      expect(executedQuery).toMatch(/file=\.\/[^:]+:\d+:\d+/);
+      // File path should include line:column URL-encoded (e.g., .%2Ffile.ts%3A42%3A10)
+      expect(executedQuery).toMatch(/file=\.%2F[^%]+%3A\d+%3A\d+/);
     });
 
     it('should work with parameterized queries', async () => {
@@ -126,7 +126,7 @@ describe('TrackedPool', () => {
     });
 
     it('should not duplicate tracking comments', async () => {
-      const sql = 'SELECT * FROM users /*func_name=test,file=./test.ts:1:0*/';
+      const sql = 'SELECT * FROM users /*func_name=test,file=.%2Ftest.ts%3A1%3A0*/';
       
       await pool.query(sql);
       
