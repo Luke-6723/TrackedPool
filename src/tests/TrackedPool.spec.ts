@@ -72,9 +72,9 @@ describe('TrackedPool', () => {
       const executedQuery = capturedQueries[0].text;
       
       // Verify the tracking comment is included
-      expect(executedQuery).toContain('/*func_name=');
-      expect(executedQuery).toContain(',file=.%2F');
-      expect(executedQuery).toContain('*/');
+      expect(executedQuery).toContain("/*func_name='");
+      expect(executedQuery).toContain(",file='.%2F");
+      expect(executedQuery).toContain("'*/");
       
       // Verify original query is preserved
       expect(executedQuery).toContain('SELECT * FROM users');
@@ -90,7 +90,7 @@ describe('TrackedPool', () => {
       expect(capturedQueries.length).toBe(1);
       const executedQuery = capturedQueries[0].text;
       
-      expect(executedQuery).toMatch(/\/\*func_name=testFunction,/);
+      expect(executedQuery).toMatch(/\/\*func_name='testFunction',/);
     });
 
     it('should include file path in tracking comment', async () => {
@@ -99,8 +99,8 @@ describe('TrackedPool', () => {
       expect(capturedQueries.length).toBe(1);
       const executedQuery = capturedQueries[0].text;
       
-      // Should contain file reference (TrackedPool.spec.ts or similar), URL-encoded
-      expect(executedQuery).toMatch(/,file=\.%2F[^*]+\*\//);
+      // Should contain file reference (TrackedPool.spec.ts or similar), URL-encoded with quotes
+      expect(executedQuery).toMatch(/,file='\.%2F[^']+'\*\//);
       expect(executedQuery).toContain('TrackedPool.spec');
     });
 
@@ -110,8 +110,8 @@ describe('TrackedPool', () => {
       expect(capturedQueries.length).toBe(1);
       const executedQuery = capturedQueries[0].text;
 
-      // File path should include line:column URL-encoded (e.g., .%2Ffile.ts%3A42%3A10)
-      expect(executedQuery).toMatch(/file=\.%2F[^%]+%3A\d+%3A\d+/);
+      // File path should include line:column URL-encoded with quotes (e.g., '.%2Ffile.ts%3A42%3A10')
+      expect(executedQuery).toMatch(/file='\.%2F[^%]+%3A\d+%3A\d+'/);
     });
 
     it('should work with parameterized queries', async () => {
@@ -126,7 +126,7 @@ describe('TrackedPool', () => {
     });
 
     it('should not duplicate tracking comments', async () => {
-      const sql = 'SELECT * FROM users /*func_name=test,file=.%2Ftest.ts%3A1%3A0*/';
+      const sql = "SELECT * FROM users /*func_name='test',file='.%2Ftest.ts%3A1%3A0'*/";
       
       await pool.query(sql);
       
@@ -297,11 +297,11 @@ describe('TrackedPool', () => {
       expect(capturedQueries.length).toBe(2);
       
       // First query should be from queryUsers function
-      expect(capturedQueries[0].text).toContain('/*func_name=queryUsers,');
+      expect(capturedQueries[0].text).toContain("/*func_name='queryUsers',");
       expect(capturedQueries[0].text).toContain('SELECT * FROM users');
-      
+
       // Second query should be from queryProducts function
-      expect(capturedQueries[1].text).toContain('/*func_name=queryProducts,');
+      expect(capturedQueries[1].text).toContain("/*func_name='queryProducts',");
       expect(capturedQueries[1].text).toContain('SELECT * FROM products');
     });
   });
