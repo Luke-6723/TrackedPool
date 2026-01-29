@@ -102,10 +102,9 @@ describe.skipIf(!shouldRunIntegrationTests)('TrackedPool Integration Tests', () 
     
     const query = result.rows[0].query;
     expect(query).toContain('SELECT COUNT(*) FROM test_users');
-    expect(query).toContain('/*func_name=testQueryFunction');
-    expect(query).toContain(',file=');
-    expect(query).toContain(',line=');
-    expect(query).toContain('*/');
+    expect(query).toContain("/*file='.%2F");
+    expect(query).toContain(",func_name='testQueryFunction'");
+    expect(query).toContain("'*/");
   });
 
   it('should include different tracking comments for different functions', async () => {

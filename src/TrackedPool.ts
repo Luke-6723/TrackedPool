@@ -2,8 +2,8 @@ import pg from "pg";
 
 /**
  * A wrapper around pg.Pool that automatically adds tracking comments to SQL queries
- * Comments include: function name, file path, and line number
- * Example format in SQL: slash-star func_name=functionName,file=filePath,line=lineNumber star-slash
+ * Comments include: function name, file path, line number, and column number
+ * Example format in SQL: slash-star file='.%2FfilePath%3AlineNumber%3AcolumnNumber',func_name='functionName' star-slash
  */
 export class TrackedPool extends pg.Pool {
   /**
@@ -18,13 +18,14 @@ export class TrackedPool extends pg.Pool {
     }
 
     // Check if SQL already has a tracking comment (to prevent duplicates)
-    if (sql.trim().endsWith("*/") && sql.includes("/*func_name=")) {
+    if (sql.trim().endsWith("*/") && sql.includes("/*file='")) {
       return sql;
     }
 
     const functionName = callSite.getFunctionName() || callSite.getMethodName() || "anonymous";
     const fileName = callSite.getFileName() || "unknown";
     const lineNumber = callSite.getLineNumber() || 0;
+    const columnNumber = callSite.getColumnNumber() || 0;
 
     // Extract relative path from file name (remove workspace path prefix and node_modules)
     let relativePath = fileName;
@@ -46,7 +47,8 @@ export class TrackedPool extends pg.Pool {
       relativePath = fileName.split("/").pop() || fileName;
     }
 
-    const comment = `/*func_name=${functionName},file=${relativePath},line=${lineNumber}*/`;
+    const filePath = `./${relativePath}:${lineNumber}:${columnNumber}`;
+    const comment = `/*file='${encodeURIComponent(filePath)}',func_name='${functionName}'*/`;
 
     return sql.trim() + " " + comment;
   }
