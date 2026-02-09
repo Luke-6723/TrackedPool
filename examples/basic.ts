@@ -60,9 +60,9 @@ async function transactionExample() {
 }
 
 // Example of what the SQL looks like when sent to PostgreSQL:
-// /*func_name=basicExample,file=examples/basic.ts,line=14*/ SELECT NOW() as current_time
-// /*func_name=basicExample,file=examples/basic.ts,line=18*/ SELECT * FROM users WHERE age > $1
-// /*func_name=transactionExample,file=examples/basic.ts,line=40*/ BEGIN
+// SELECT NOW() as current_time /*file='.%2Fexamples%2Fbasic.ts%3A14%3A10',func_name='basicExample'*/
+// SELECT * FROM users WHERE age > $1 /*file='.%2Fexamples%2Fbasic.ts%3A18%3A10',func_name='basicExample'*/
+// BEGIN /*file='.%2Fexamples%2Fbasic.ts%3A42%3A10',func_name='transactionExample'*/
 
 if (require.main === module) {
   console.log("Running postgres-tracked-pool examples...\n");

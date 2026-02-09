@@ -10,7 +10,7 @@ export class TrackedPool extends pg.Pool {
    * Adds tracking comment to SQL query
    * @param sql The SQL query string
    * @param callSite Stack trace entry containing caller information
-   * @returns SQL query with tracking comment prepended
+   * @returns SQL query with tracking comment appended
    */
   private addTrackingComment(sql: string, callSite?: NodeJS.CallSite): string {
     if (!callSite) {
@@ -29,7 +29,7 @@ export class TrackedPool extends pg.Pool {
 
     // Extract relative path from file name (remove workspace path prefix and node_modules)
     let relativePath = fileName;
-    
+
     // First, try to match workspace folders
     const workspaceMatch = fileName.match(/\/(sdk|bot|api|web|interactions|moderation|servers)\/(.+)$/);
     if (workspaceMatch) {
